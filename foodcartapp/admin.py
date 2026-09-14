@@ -3,15 +3,23 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 
-from .models import Product
-from .models import ProductCategory
-from .models import Restaurant
-from .models import RestaurantMenuItem
+from .models import (
+    Order,
+    OrderItem,
+    Product,
+    ProductCategory,
+    Restaurant,
+    RestaurantMenuItem,
+)
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
+    autocomplete_fields = [
+        'restaurant',
+        'product',
+    ]
 
 
 @admin.register(Restaurant)
@@ -41,6 +49,9 @@ class ProductAdmin(admin.ModelAdmin):
     ]
     list_display_links = [
         'name',
+    ]
+    list_select_related = [
+        'category',
     ]
     list_filter = [
         'category',
@@ -97,10 +108,76 @@ class ProductAdmin(admin.ModelAdmin):
         if not obj.image or not obj.id:
             return 'нет картинки'
         edit_url = reverse('admin:foodcartapp_product_change', args=(obj.id,))
-        return format_html('<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>', edit_url=edit_url, src=obj.image.url)
+        return format_html(
+            '<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>',
+            edit_url=edit_url,
+            src=obj.image.url,
+        )
     get_image_list_preview.short_description = 'превью'
 
 
 @admin.register(ProductCategory)
-class ProductAdmin(admin.ModelAdmin):
-    pass
+class ProductCategoryAdmin(admin.ModelAdmin):
+    search_fields = [
+        'name',
+    ]
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    autocomplete_fields = [
+        'product',
+    ]
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = [
+        'firstname',
+        'lastname',
+        'phonenumber',
+        'address',
+        'status',
+        'payment_method',
+        'registered_at',
+        'status_changed_at',
+        'get_total_price',
+    ]
+    list_filter = [
+        'status',
+        'payment_method',
+        'registered_at',
+    ]
+    search_fields = [
+        'firstname',
+        'lastname',
+        'phonenumber',
+        'address',
+    ]
+    fields = [
+        'status',
+        'payment_method',
+        'firstname',
+        'lastname',
+        'phonenumber',
+        'address',
+        'comment',
+        'registered_at',
+        'status_changed_at',
+    ]
+    readonly_fields = [
+        'registered_at',
+        'status_changed_at',
+    ]
+    inlines = [
+        OrderItemInline
+    ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).with_total_price()
+
+    def get_total_price(self, order):
+        return order.total_price
+    get_total_price.short_description = 'сумма заказа'
+    get_total_price.admin_order_field = 'total_price'

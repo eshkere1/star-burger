@@ -1,8 +1,16 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
-
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Product
+from .serializers import OrderSerializer
+
+JSON_DUMPS_PARAMS = {
+    'ensure_ascii': False,
+    'indent': 4,
+}
 
 
 def banners_list_api(request):
@@ -23,18 +31,14 @@ def banners_list_api(request):
             'src': static('tasty.jpg'),
             'text': 'Food is incomplete without a tasty dessert',
         }
-    ], safe=False, json_dumps_params={
-        'ensure_ascii': False,
-        'indent': 4,
-    })
+    ], safe=False, json_dumps_params=JSON_DUMPS_PARAMS)
 
 
 def product_list_api(request):
     products = Product.objects.select_related('category').available()
 
-    dumped_products = []
-    for product in products:
-        dumped_product = {
+    dumped_products = [
+        {
             'id': product.id,
             'name': product.name,
             'price': product.price,
@@ -48,15 +52,16 @@ def product_list_api(request):
             'restaurant': {
                 'id': product.id,
                 'name': product.name,
-            }
+            },
         }
-        dumped_products.append(dumped_product)
-    return JsonResponse(dumped_products, safe=False, json_dumps_params={
-        'ensure_ascii': False,
-        'indent': 4,
-    })
+        for product in products
+    ]
+    return JsonResponse(dumped_products, safe=False, json_dumps_params=JSON_DUMPS_PARAMS)
 
 
-def register_order(request):
-    # TODO это лишь заглушка
-    return JsonResponse({})
+class OrderView(APIView):
+    def post(self, request):
+        serializer = OrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)

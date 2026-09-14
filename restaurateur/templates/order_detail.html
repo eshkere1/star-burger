@@ -1,0 +1,98 @@
+{% extends 'base_restaurateur_page.html' %}
+
+{% block title %}Заказ №{{ order.id }} | Star Burger{% endblock %}
+
+{% block content %}
+  <center>
+    <h2>Заказ №{{ order.id }}</h2>
+  </center>
+
+  <hr/>
+  <br/>
+
+  <div class="container">
+    <p>
+      <a href="{% url 'restaurateur:view_orders' %}">&larr; Ко всем заказам</a>
+    </p>
+
+    <p>
+      <a class="btn btn-primary" href="{% url 'restaurateur:edit_order' order.id %}">Редактировать заказ</a>
+    </p>
+
+    <p>
+      <strong>Статус:</strong> {{ order.get_status_display }}
+    </p>
+
+    <p>
+      <strong>Способ оплаты:</strong> {{ order.get_payment_method_display }}
+    </p>
+
+    <p>
+      <strong>Дата создания:</strong> {{ order.registered_at|date:"d.m.Y H:i" }}
+    </p>
+
+    <p>
+      <strong>Дата изменения статуса:</strong> {{ order.status_changed_at|date:"d.m.Y H:i" }}
+    </p>
+
+    <h3>Клиент</h3>
+    <table class="table table-responsive">
+      <tr>
+        <th style="width: 25%;">Имя</th>
+        <td>{{ order.firstname }} {{ order.lastname }}</td>
+      </tr>
+      <tr>
+        <th>Телефон</th>
+        <td>{{ order.phonenumber }}</td>
+      </tr>
+      <tr>
+        <th>Адрес доставки</th>
+        <td>{{ order.address }}</td>
+      </tr>
+      <tr>
+        <th>Координаты клиента</th>
+        <td>
+          {% if client_coordinates %}
+            {{ client_coordinates.lat|floatformat:4 }}, {{ client_coordinates.lon|floatformat:4 }}
+          {% else %}
+            <span class="text-danger">Не удалось определить координаты адреса</span>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Комментарий менеджера</th>
+        <td>{{ order.comment|default:"—"|linebreaksbr }}</td>
+      </tr>
+    </table>
+
+    <br/>
+
+    <h3>Состав заказа</h3>
+    <table class="table table-responsive">
+      <tr>
+        <th>Товар</th>
+        <th>Цена за штуку</th>
+        <th>Количество</th>
+        <th>Стоимость</th>
+      </tr>
+
+      {% for item in order.items.all %}
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.price|floatformat:2 }} руб.</td>
+          <td>{{ item.quantity }} шт.</td>
+          <td>{{ item.cost|floatformat:2 }} руб.</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="4">Заказ пуст.</td>
+        </tr>
+      {% endfor %}
+
+      <tr>
+        <th colspan="3">Сумма заказа</th>
+        <th>{{ order.total_price|default:0|floatformat:2 }} руб.</th>
+      </tr>
+    </table>
+  </div>
+{% endblock %}
