@@ -1,0 +1,601 @@
+[
+{
+  "model": "foodcartapp.restaurant",
+  "pk": 1,
+  "fields": {
+    "name": "Стар Бургер на Тверской",
+    "address": "Москва, Тверская улица, 1",
+    "contact_phone": "+74951234501"
+  }
+},
+{
+  "model": "foodcartapp.restaurant",
+  "pk": 2,
+  "fields": {
+    "name": "Стар Бургер в Сокольниках",
+    "address": "Москва, Русаковская улица, 26",
+    "contact_phone": "+74951234502"
+  }
+},
+{
+  "model": "foodcartapp.restaurant",
+  "pk": 3,
+  "fields": {
+    "name": "Стар Бургер на Вернадского",
+    "address": "Москва, проспект Вернадского, 86",
+    "contact_phone": "+74951234503"
+  }
+},
+{
+  "model": "foodcartapp.productcategory",
+  "pk": 8,
+  "fields": {
+    "name": "Бургеры"
+  }
+},
+{
+  "model": "foodcartapp.productcategory",
+  "pk": 9,
+  "fields": {
+    "name": "Закуски"
+  }
+},
+{
+  "model": "foodcartapp.productcategory",
+  "pk": 10,
+  "fields": {
+    "name": "Напитки"
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 1,
+  "fields": {
+    "name": "Чизбургер",
+    "category": 8,
+    "price": "320.00",
+    "image": "demo/burger.jpg",
+    "special_status": false,
+    "description": "Котлета, сыр, соус"
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 2,
+  "fields": {
+    "name": "Веганский бургер",
+    "category": 8,
+    "price": "380.00",
+    "image": "demo/vegan-burger.jpg",
+    "special_status": true,
+    "description": "Котлета из нута"
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 3,
+  "fields": {
+    "name": "Картошка фри",
+    "category": 9,
+    "price": "150.00",
+    "image": "demo/fries.jpg",
+    "special_status": false,
+    "description": ""
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 4,
+  "fields": {
+    "name": "Салат «Цезарь»",
+    "category": 9,
+    "price": "290.00",
+    "image": "demo/salad.jpg",
+    "special_status": false,
+    "description": ""
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 5,
+  "fields": {
+    "name": "Кола",
+    "category": 10,
+    "price": "120.00",
+    "image": "demo/cola.jpg",
+    "special_status": false,
+    "description": ""
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 6,
+  "fields": {
+    "name": "Молочный коктейль",
+    "category": 10,
+    "price": "210.00",
+    "image": "demo/shake.jpg",
+    "special_status": false,
+    "description": ""
+  }
+},
+{
+  "model": "foodcartapp.product",
+  "pk": 7,
+  "fields": {
+    "name": "Луковые кольца",
+    "category": 9,
+    "price": "180.00",
+    "image": "demo/fries.jpg",
+    "special_status": false,
+    "description": "Ещё не завезли ни в один ресторан"
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 7,
+  "fields": {
+    "restaurant": 1,
+    "product": 1,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 8,
+  "fields": {
+    "restaurant": 1,
+    "product": 2,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 9,
+  "fields": {
+    "restaurant": 1,
+    "product": 3,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 10,
+  "fields": {
+    "restaurant": 1,
+    "product": 4,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 11,
+  "fields": {
+    "restaurant": 1,
+    "product": 5,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 12,
+  "fields": {
+    "restaurant": 1,
+    "product": 6,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 13,
+  "fields": {
+    "restaurant": 2,
+    "product": 1,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 14,
+  "fields": {
+    "restaurant": 2,
+    "product": 2,
+    "availability": false
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 15,
+  "fields": {
+    "restaurant": 2,
+    "product": 3,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 16,
+  "fields": {
+    "restaurant": 2,
+    "product": 5,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 17,
+  "fields": {
+    "restaurant": 2,
+    "product": 6,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 18,
+  "fields": {
+    "restaurant": 3,
+    "product": 1,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.restaurantmenuitem",
+  "pk": 19,
+  "fields": {
+    "restaurant": 3,
+    "product": 5,
+    "availability": true
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 1,
+  "fields": {
+    "status": "cooking",
+    "payment_method": "electronic",
+    "firstname": "Пётр",
+    "lastname": "Смирнов",
+    "phonenumber": "+79161234501",
+    "address": "Москва, Никольская улица, 10",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.525Z",
+    "status_changed_at": "2026-09-14T16:26:19.227Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 2,
+  "fields": {
+    "status": "new",
+    "payment_method": "electronic",
+    "firstname": "Анна",
+    "lastname": "Кузнецова",
+    "phonenumber": "+79161234502",
+    "address": "Москва, улица Академика Анохина, 2",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.535Z",
+    "status_changed_at": "2026-09-14T16:21:54.535Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 3,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Мария",
+    "lastname": "Орлова",
+    "phonenumber": "+79161234503",
+    "address": "Москва, Русаковская улица, 1",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.546Z",
+    "status_changed_at": "2026-09-14T16:21:54.546Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 4,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Сергей",
+    "lastname": "Волков",
+    "phonenumber": "+79161234504",
+    "address": "Москва, Ленинский проспект, 32А",
+    "comment": "Позвонить за 15 минут до доставки",
+    "registered_at": "2026-09-14T16:21:54.559Z",
+    "status_changed_at": "2026-09-14T16:21:54.559Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 5,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Ольга",
+    "lastname": "Белова",
+    "phonenumber": "+79161234505",
+    "address": "улица Пушкина, дом Колотушкина",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.571Z",
+    "status_changed_at": "2026-09-14T16:21:54.571Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 6,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Никита",
+    "lastname": "Громов",
+    "phonenumber": "+79161234506",
+    "address": "Москва, Тверская улица, 6",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.583Z",
+    "status_changed_at": "2026-09-14T16:21:54.583Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 7,
+  "fields": {
+    "status": "done",
+    "payment_method": "cash",
+    "firstname": "Илья",
+    "lastname": "Зайцев",
+    "phonenumber": "+79161234507",
+    "address": "Москва, Тверская улица, 10",
+    "comment": "",
+    "registered_at": "2026-09-14T16:21:54.599Z",
+    "status_changed_at": "2026-09-14T16:21:54.599Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 8,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Екатерина",
+    "lastname": "Морозова",
+    "phonenumber": "+7 916 123 45 08",
+    "address": "Москва, Новый Арбат, 15",
+    "comment": "",
+    "registered_at": "2026-09-14T16:23:54.061Z",
+    "status_changed_at": "2026-09-14T16:23:54.061Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 9,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Тимур",
+    "lastname": "Лебедев",
+    "phonenumber": "+79161234509",
+    "address": "Москва, Малая Дмитровка, 5",
+    "comment": "",
+    "registered_at": "2026-09-14T16:25:39.355Z",
+    "status_changed_at": "2026-09-14T16:25:39.355Z"
+  }
+},
+{
+  "model": "foodcartapp.order",
+  "pk": 10,
+  "fields": {
+    "status": "new",
+    "payment_method": "cash",
+    "firstname": "Галина",
+    "lastname": "Фомина",
+    "phonenumber": "+79161234510",
+    "address": "qwertyuiop asdfghjkl 99999",
+    "comment": "",
+    "registered_at": "2026-09-14T16:25:39.365Z",
+    "status_changed_at": "2026-09-14T16:25:39.365Z"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 1,
+  "fields": {
+    "order": 1,
+    "product": 1,
+    "quantity": 4,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 2,
+  "fields": {
+    "order": 2,
+    "product": 1,
+    "quantity": 2,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 3,
+  "fields": {
+    "order": 2,
+    "product": 5,
+    "quantity": 2,
+    "price": "120.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 4,
+  "fields": {
+    "order": 3,
+    "product": 1,
+    "quantity": 1,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 5,
+  "fields": {
+    "order": 3,
+    "product": 3,
+    "quantity": 1,
+    "price": "150.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 6,
+  "fields": {
+    "order": 3,
+    "product": 6,
+    "quantity": 1,
+    "price": "210.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 7,
+  "fields": {
+    "order": 4,
+    "product": 4,
+    "quantity": 1,
+    "price": "290.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 8,
+  "fields": {
+    "order": 4,
+    "product": 5,
+    "quantity": 1,
+    "price": "120.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 9,
+  "fields": {
+    "order": 5,
+    "product": 1,
+    "quantity": 1,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 10,
+  "fields": {
+    "order": 5,
+    "product": 5,
+    "quantity": 1,
+    "price": "120.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 11,
+  "fields": {
+    "order": 6,
+    "product": 2,
+    "quantity": 1,
+    "price": "380.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 12,
+  "fields": {
+    "order": 6,
+    "product": 4,
+    "quantity": 1,
+    "price": "290.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 13,
+  "fields": {
+    "order": 6,
+    "product": 6,
+    "quantity": 2,
+    "price": "210.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 14,
+  "fields": {
+    "order": 7,
+    "product": 1,
+    "quantity": 3,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 15,
+  "fields": {
+    "order": 8,
+    "product": 1,
+    "quantity": 2,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 16,
+  "fields": {
+    "order": 8,
+    "product": 5,
+    "quantity": 1,
+    "price": "120.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 17,
+  "fields": {
+    "order": 9,
+    "product": 7,
+    "quantity": 1,
+    "price": "180.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 18,
+  "fields": {
+    "order": 9,
+    "product": 1,
+    "quantity": 1,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 19,
+  "fields": {
+    "order": 10,
+    "product": 1,
+    "quantity": 1,
+    "price": "320.00"
+  }
+},
+{
+  "model": "foodcartapp.orderitem",
+  "pk": 20,
+  "fields": {
+    "order": 1,
+    "product": 3,
+    "quantity": 2,
+    "price": "150.00"
+  }
+}
+]
