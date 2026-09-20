@@ -8,74 +8,123 @@
   </center>
 
   <hr/>
-  <br/>
-  <br/>
-  <div class="container">
-   {% if deliveries %}
-   <table class="table table-responsive">
-    <tr>
-      <th>ID заказа</th>
-      <th>Статус</th>
-      <th>Способ оплаты</th>
-      <th>Клиент</th>
-      <th>Телефон</th>
-      <th>Адрес доставки</th>
-      <th>Координаты клиента</th>
-      <th>Состав заказа</th>
-      <th>Сумма заказа</th>
-      <th>Может приготовить</th>
-      <th>Создан</th>
-      <th>Статус изменен</th>
-    </tr>
 
-    {% for delivery in deliveries %}
-      {% with order=delivery.order %}
+  <div class="container-fluid">
+   {% if deliveries %}
+   <div class="table-responsive">
+    <table class="table table-hover table-condensed">
+     <thead>
       <tr>
-        <td><a href="{% url 'restaurateur:view_order' order.id %}">{{ order.id }}</a></td>
-        <td>{{ order.get_status_display }}</td>
-        <td>{{ order.get_payment_method_display }}</td>
-        <td>{{ order.firstname }} {{ order.lastname }}</td>
-        <td>{{ order.phonenumber }}</td>
-        <td>{{ order.address }}</td>
-        <td>
-          {% if delivery.client_coordinates %}
-            {{ delivery.client_coordinates.lat|floatformat:4 }}, {{ delivery.client_coordinates.lon|floatformat:4 }}
-          {% else %}
-            <span class="text-danger">Не удалось определить координаты</span>
-          {% endif %}
-        </td>
-        <td>
-          <ul>
-            {% for item in order.items.all %}
-              <li>{{ item.product.name }} &times; {{ item.quantity }}</li>
-            {% endfor %}
-          </ul>
-        </td>
-        <td>{{ order.total_price }} руб.</td>
-        <td>
-          {% if delivery.restaurants %}
-            <ul>
-              {% for option in delivery.restaurants %}
-                <li>
-                  {{ option.restaurant.name }}
-                  {% if option.distance is not None %}
-                    &mdash; {{ option.distance }} км
-                  {% else %}
-                    <span class="text-danger">(не удалось рассчитать расстояние)</span>
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <span class="text-danger">Нет ресторанов</span>
-          {% endif %}
-        </td>
-        <td>{{ order.registered_at|date:"d.m.Y H:i" }}</td>
-        <td>{{ order.status_changed_at|date:"d.m.Y H:i" }}</td>
+        <th>ID заказа</th>
+        <th>Создан</th>
+        <th>Способ оплаты</th>
+        <th>Статус</th>
+        <th>Клиент</th>
+        <th>Телефон</th>
+        <th>Адрес доставки</th>
+        <th>Комментарий</th>
+        <th>Стоимость заказа</th>
+        <th>Могут выполнить заказ</th>
+        <th>Товары</th>
+        <th>Действия</th>
       </tr>
-      {% endwith %}
-    {% endfor %}
-   </table>
+     </thead>
+
+     <tbody>
+      {% for delivery in deliveries %}
+        {% with order=delivery.order %}
+        <tr>
+          <td class="text-nowrap">
+            <a href="{% url 'restaurateur:view_order' order.id %}"><strong>#{{ order.id }}</strong></a>
+          </td>
+
+          <td>{{ order.registered_at|date:"j E Y г. H:i" }}</td>
+
+          <td>
+            <span class="label label-default">{{ order.get_payment_method_display }}</span>
+          </td>
+
+          <td>
+            {% if order.status == 'new' %}
+              <span class="label label-primary">{{ order.get_status_display }}</span>
+            {% elif order.status == 'cooking' %}
+              <span class="label label-warning">{{ order.get_status_display }}</span>
+            {% else %}
+              <span class="label label-info">{{ order.get_status_display }}</span>
+            {% endif %}
+          </td>
+
+          <td>{{ order.firstname }} {{ order.lastname }}</td>
+
+          <td class="text-nowrap">
+            <a href="tel:{{ order.phonenumber }}">{{ order.phonenumber }}</a>
+          </td>
+
+          <td>
+            {{ order.address }}
+            <br/>
+            {% if delivery.client_coordinates %}
+              <small class="text-muted">({{ delivery.client_coordinates.lat|floatformat:4 }}, {{ delivery.client_coordinates.lon|floatformat:4 }})</small>
+            {% else %}
+              <small class="text-danger">координаты не определены</small>
+            {% endif %}
+          </td>
+
+          <td>{{ order.comment|default:"—"|linebreaksbr }}</td>
+
+          <td class="text-nowrap">{{ order.total_price|default:0|floatformat }} руб.</td>
+
+          <td>
+            {% if delivery.restaurants %}
+              <ul class="list-unstyled">
+                {% for option in delivery.restaurants %}
+                  <li>
+                    &bull; {{ option.restaurant.name }}
+                    {% if option.distance is not None %}
+                      ({{ option.distance|floatformat }} км)
+                    {% else %}
+                      <span class="text-danger">(расстояние неизвестно)</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <span class="text-danger">Нет подходящего ресторана</span>
+            {% endif %}
+          </td>
+
+          <td class="text-nowrap">
+            <a role="button" data-toggle="collapse" href="#order-items-{{ order.id }}"
+               aria-expanded="false" aria-controls="order-items-{{ order.id }}">
+              Посмотреть товары ({{ order.items.all|length }})
+            </a>
+          </td>
+
+          <td class="text-nowrap">
+            <a class="btn btn-primary btn-xs" href="{% url 'restaurateur:view_order' order.id %}">Открыть</a>
+            <br/>
+            <a class="btn btn-default btn-xs" href="{% url 'restaurateur:edit_order' order.id %}">Редактировать</a>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="12" style="border-top: none; padding: 0;">
+            <div class="collapse" id="order-items-{{ order.id }}">
+              <ul>
+                {% for item in order.items.all %}
+                  <li>{{ item.product.name }} &times; {{ item.quantity }} &mdash; {{ item.cost|floatformat }} руб.</li>
+                {% empty %}
+                  <li>Заказ пуст.</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+      {% endfor %}
+     </tbody>
+    </table>
+   </div>
    {% else %}
     <p>Заказов пока нет.</p>
    {% endif %}

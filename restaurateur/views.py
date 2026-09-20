@@ -96,7 +96,6 @@ def view_orders(request):
         .unprocessed()
         .with_total_price()
         .with_items()
-        .defer('comment')
     )
 
     return render(request, template_name='order_items.html', context={
