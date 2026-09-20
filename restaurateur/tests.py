@@ -58,6 +58,60 @@ class ManagerPagesTests(TestCase):
         # Координаты клиента, взятые из кэша; формат — как его покажет шаблон.
         self.assertContains(response, floatformat(55.757, 4))
 
+    def post_edit(self, **fields):
+        """Карточка заказа ровно в том виде, в каком её отправляет кабинет."""
+        item = self.order.items.get()
+        return self.client.post(
+            reverse('restaurateur:edit_order', args=[self.order.id]),
+            data={
+                'status': Order.Status.NEW,
+                'payment_method': Order.PaymentMethod.CASH,
+                'firstname': 'Иван',
+                'lastname': 'Иванов',
+                'phonenumber': '+79001234567',
+                'address': CLIENT_ADDRESS,
+                'comment': '',
+                'items-TOTAL_FORMS': '1',
+                'items-INITIAL_FORMS': '1',
+                'items-MIN_NUM_FORMS': '0',
+                'items-MAX_NUM_FORMS': '1000',
+                'items-0-id': str(item.id),
+                'items-0-order': str(self.order.id),
+                'items-0-product': str(self.burger.id),
+                'items-0-quantity': str(item.quantity),
+                **fields,
+            },
+        )
+
+    def test_missing_order_gives_404(self):
+        response = self.client.get(reverse('restaurateur:view_order', args=[100500]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_form_opens_with_current_values(self):
+        response = self.client.get(reverse('restaurateur:edit_order', args=[self.order.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form'].initial['address'], CLIENT_ADDRESS)
+        self.assertEqual(response.context['form'].initial['firstname'], 'Иван')
+        self.assertEqual(response.context['items_formset'].forms[0].instance.quantity, 2)
+
+    def test_empty_address_is_not_saved(self):
+        response = self.post_edit(address='')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'address', 'Обязательное поле.')
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.address, CLIENT_ADDRESS)
+
+    def test_negative_quantity_is_not_saved(self):
+        response = self.post_edit(**{'items-0-quantity': '-1'})
+
+        # Курьер не повезёт минус один бургер, а сумма заказа ушла бы в минус.
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['items_formset'].is_valid())
+        self.assertEqual(self.order.items.get().quantity, 2)
+
     def test_order_can_be_edited(self):
         response = self.client.post(
             reverse('restaurateur:edit_order', args=[self.order.id]),
@@ -181,7 +235,7 @@ class ManagerPagesTests(TestCase):
 
 
 class OrdersPageQueriesTests(TestCase):
-    """Страница заказов не должна лезть в базу за каждым заказом отдельно."""
+    """Цена страницы заказов в запросах к базе — под присмотром."""
 
     def setUp(self):
         Geocache.objects.create(address=CLIENT_ADDRESS, lat=55.757, lon=37.611)
@@ -210,11 +264,23 @@ class OrdersPageQueriesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         return len(queries)
 
-    def test_query_count_does_not_grow_with_orders(self):
+    QUERIES_PER_ORDER = 2
+
+    def test_order_costs_a_known_number_of_queries(self):
+        """Подбор ресторанов стоит запросов на каждый заказ — и это видно.
+
+        `Order.get_available_restaurants` просит базу посчитать пересечение
+        для одного заказа, поэтому каждая строчка таблицы добавляет свои
+        запросы. Тест сторожит цену: вырастет она — значит в шаблон или во
+        вьюху пробрался ещё один поход в базу за каждым заказом.
+        """
         self.create_orders(1)
         queries_for_one_order = self.count_queries_on_orders_page()
 
         self.create_orders(9)
         queries_for_ten_orders = self.count_queries_on_orders_page()
 
-        self.assertEqual(queries_for_ten_orders, queries_for_one_order)
+        self.assertEqual(
+            queries_for_ten_orders - queries_for_one_order,
+            9 * self.QUERIES_PER_ORDER,
+        )

@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Prefetch, Sum
+from django.db.models import Count, F, Prefetch, Sum
 from django.utils import timezone
 
 from .validators import validate_phonenumber
@@ -225,6 +225,30 @@ class Order(models.Model):
 
     def __str__(self):
         return f'{self.firstname} {self.lastname}'
+
+    def get_available_restaurants(self):
+        """Рестораны, которым по силам весь заказ целиком.
+
+        Считает пересечение сама база: ресторан подходит, когда число его
+        позиций, попавших в заказ, сравнялось с числом разных товаров в
+        заказе. Где не хватает хотя бы одной позиции — тот не подходит:
+        заказ должен уехать из одного места, а не собираться по сети.
+        """
+        product_ids = self.items.values_list('product_id', flat=True).distinct()
+        products_count = len(product_ids)
+        if not products_count:
+            # Готовить нечего — и предлагать некого.
+            return Restaurant.objects.none()
+
+        return (
+            Restaurant.objects
+            .filter(
+                menu_items__product_id__in=product_ids,
+                menu_items__availability=True,
+            )
+            .annotate(matched_items=Count('menu_items__product', distinct=True))
+            .filter(matched_items=products_count)
+        )
 
     def save(self, *args, **kwargs):
         if self.pk and self.status != self._get_stored_status():

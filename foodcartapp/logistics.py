@@ -4,12 +4,12 @@
 как далеко он от клиента». Вьюхе остаётся только отдать результат в шаблон.
 """
 
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from geocoder.coordinates import get_coordinates_for_addresses
 from geocoder.distance import calculate_distance
 
-from .models import RestaurantMenuItem
+from .models import Restaurant
 
 RestaurantOption = namedtuple('RestaurantOption', ['restaurant', 'distance'])
 OrderDelivery = namedtuple('OrderDelivery', ['order', 'client_coordinates', 'restaurants'])
@@ -18,67 +18,40 @@ OrderDelivery = namedtuple('OrderDelivery', ['order', 'client_coordinates', 'res
 def plan_deliveries(orders):
     """Список `OrderDelivery` — по одному на каждый заказ, в том же порядке.
 
-    Все меню и все координаты собираются заранее, одним разом на весь список
-    заказов: иначе каждая новая строчка в таблице заказов стоила бы отдельных
-    запросов в базу и к геокодеру.
+    Координаты всех адресов собираются заранее, одним разом на весь список:
+    иначе каждая новая строчка в таблице заказов стоила бы отдельного похода
+    к геокодеру.
     """
-    menus = fetch_menus()
     coordinates_by_address = get_coordinates_for_addresses([
         *(order.address for order in orders),
-        *(restaurant.address for restaurant, _ in menus),
+        *Restaurant.objects.values_list('address', flat=True),
     ])
     return [
         OrderDelivery(
             order=order,
             client_coordinates=coordinates_by_address[order.address],
-            restaurants=find_restaurants(order, menus, coordinates_by_address),
+            restaurants=find_restaurants(order, coordinates_by_address),
         )
         for order in orders
     ]
 
 
-def fetch_menus():
-    """Меню всех ресторанов: [(ресторан, {id товара, ...}), ...].
-
-    В меню попадает только то, что есть в продаже.
-    """
-    products_by_restaurant = defaultdict(set)
-    restaurants_by_id = {}
-    menu_items = (
-        RestaurantMenuItem.objects
-        .available()
-        .select_related('restaurant')
-        .only('product', 'restaurant__id', 'restaurant__name', 'restaurant__address')
-    )
-    for menu_item in menu_items:
-        products_by_restaurant[menu_item.restaurant_id].add(menu_item.product_id)
-        restaurants_by_id[menu_item.restaurant_id] = menu_item.restaurant
-
-    return [
-        (restaurants_by_id[restaurant_id], product_ids)
-        for restaurant_id, product_ids in products_by_restaurant.items()
-    ]
-
-
-def find_restaurants(order, menus, coordinates_by_address):
+def find_restaurants(order, coordinates_by_address):
     """Рестораны, которым по силам весь заказ, от ближнего к дальнему.
 
-    Ближе — значит меньше расстояние по прямой до адреса клиента. Рестораны с
-    неизвестным расстоянием уезжают в конец списка: сортировать их не по чему,
-    но и прятать от менеджера нельзя.
-
-    У пустого заказа ресторанов нет: готовить нечего, и предлагать некого.
+    Кто именно подходит, решает `Order.get_available_restaurants`. Здесь к
+    ним добавляется расстояние: ближе — значит меньше по прямой до адреса
+    клиента. Рестораны с неизвестным расстоянием уезжают в конец списка:
+    сортировать их не по чему, но и прятать от менеджера нельзя.
     """
     client_coordinates = coordinates_by_address[order.address]
-    ordered_products = {item.product_id for item in order.items.all()}
 
     options = [
         RestaurantOption(
             restaurant=restaurant,
-            distance=get_distance(client_coordinates, coordinates_by_address[restaurant.address]),
+            distance=get_distance(client_coordinates, coordinates_by_address.get(restaurant.address)),
         )
-        for restaurant, available_products in menus
-        if ordered_products and ordered_products <= available_products
+        for restaurant in order.get_available_restaurants()
     ]
     return sorted(options, key=lambda option: (option.distance is None, option.distance))
 

@@ -2,8 +2,10 @@ import json
 from decimal import Decimal
 from unittest.mock import patch
 
+from django.db import DatabaseError, connection
 from django.db.models import ProtectedError
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 
 from geocoder.models import Geocache
 
@@ -131,6 +133,48 @@ class OrderApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Order.objects.exists())
 
+    def test_order_is_not_half_saved_when_items_fail(self):
+        burger = create_product('Бургер', '250.00')
+
+        # Заказ без позиций — мусор, ради которого менеджер зря позвонит
+        # клиенту. Упали позиции — транзакция уносит с собой и сам заказ.
+        with patch.object(OrderItem.objects, 'bulk_create', side_effect=DatabaseError):
+            with self.assertRaises(DatabaseError):
+                self.post_order(products=[{'product': burger.id, 'quantity': 1}])
+
+        self.assertFalse(Order.objects.exists())
+        self.assertFalse(OrderItem.objects.exists())
+
+
+class OrderApiQueriesTests(TestCase):
+    """Сколько бы позиций ни было в заказе, товары достаются одним запросом."""
+
+    def count_product_queries(self, products):
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.post(
+                '/api/order/',
+                data=json.dumps({
+                    'firstname': 'Иван',
+                    'lastname': 'Иванов',
+                    'phonenumber': '+79001234567',
+                    'address': CLIENT_ADDRESS,
+                    'products': [{'product': product.id, 'quantity': 1} for product in products],
+                }),
+                content_type='application/json',
+            )
+        self.assertEqual(response.status_code, 201)
+        return len([
+            query for query in queries
+            if query['sql'].lstrip().startswith('SELECT') and 'foodcartapp_product' in query['sql']
+        ])
+
+    def test_products_cost_one_query_whatever_their_number(self):
+        products = [create_product(f'Товар {number}') for number in range(10)]
+
+        # DRF сам по себе спросил бы у базы каждый товар отдельно.
+        self.assertEqual(self.count_product_queries(products[:1]), 1)
+        self.assertEqual(self.count_product_queries(products), 1)
+
 
 class ProductListApiTests(TestCase):
 
@@ -145,6 +189,47 @@ class ProductListApiTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual([product['name'] for product in response.json()], [burger.name])
+
+
+class AvailableRestaurantsTests(TestCase):
+    """Ресторан подходит заказу, только если у него есть все его товары."""
+
+    def setUp(self):
+        self.burger = create_product('Бургер')
+        self.fries = create_product('Картошка')
+
+    def create_restaurant(self, name, products):
+        restaurant = Restaurant.objects.create(name=name, address=NEAR_ADDRESS)
+        for product in products:
+            RestaurantMenuItem.objects.create(restaurant=restaurant, product=product)
+        return restaurant
+
+    def test_restaurant_with_whole_order_is_found(self):
+        full_menu = self.create_restaurant('Полное меню', [self.burger, self.fries])
+        order = create_order([self.burger, self.fries])
+
+        self.assertEqual(list(order.get_available_restaurants()), [full_menu])
+
+    def test_restaurant_missing_one_item_is_skipped(self):
+        # Бургер есть, картошки нет — заказ целиком отсюда не уедет.
+        self.create_restaurant('Только бургеры', [self.burger])
+        order = create_order([self.burger, self.fries])
+
+        self.assertEqual(list(order.get_available_restaurants()), [])
+
+    def test_restaurant_with_extra_products_still_fits(self):
+        rings = create_product('Луковые кольца')
+        big_menu = self.create_restaurant('Большое меню', [self.burger, self.fries, rings])
+        order = create_order([self.burger])
+
+        # Лишние позиции в меню заказу не мешают — важно, чего не хватает.
+        self.assertEqual(list(order.get_available_restaurants()), [big_menu])
+
+    def test_empty_order_has_no_restaurants(self):
+        self.create_restaurant('Полное меню', [self.burger, self.fries])
+        order = create_order([])
+
+        self.assertEqual(list(order.get_available_restaurants()), [])
 
 
 class PlanDeliveriesTests(TestCase):
